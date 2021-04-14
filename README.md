@@ -6,7 +6,7 @@ Maillist.sh is a mail list manager written in Bash to be a "relatively easy-to-s
 
 # Why???
 
-I was toiling one weekend trying to setup GNU Mailman on my web server when I realized one of the configurations involved Exim (mail transfer agent)piping the contents of the e-mail to a Mailman wrapper executable.  After getting Mailman partially setup, I felt that a simple mail list manager could conceivably be written in Bash and serve a similar purpose.  I also just wanted to challenge myself to do something crazy like this.
+I was toiling one weekend trying to setup GNU Mailman on my web server when I realized one of the configurations involved Exim (mail transfer agent) piping the contents of the e-mail to a Mailman wrapper executable.  After getting Mailman partially setup, I felt that a simple mail list manager could conceivably be written in Bash and serve a similar purpose.  I also just wanted to challenge myself to do something crazy like this.
 
 # Purpose / Motivation
 
