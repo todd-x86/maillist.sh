@@ -1,0 +1,5 @@
+maillist_router:
+  driver            = accept
+  domains           = +ml_domains
+  require_files     = /etc/maillist/lists/${lc::$local_part}/list.cfg
+  transport         = maillist_transport

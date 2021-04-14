@@ -1,0 +1,7 @@
+maillist_transport:
+  driver  = pipe
+  command = ML_WRAPPER process $local_part
+  current_directory = ML_HOME
+  home_directory    = ML_HOME
+  user              = ML_USER
+  group             = ML_GROUP
