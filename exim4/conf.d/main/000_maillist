@@ -1,0 +1,8 @@
+ML_HOME=/usr/local/maillist
+ML_USER=maillist
+ML_GROUP=maillist
+
+domainlist ml_domains=example.com
+
+ML_WRAPPER=/usr/local/maillist/maillist.sh
+SYSTEM_ALIASES_PIPE_TRANSPORT = address_pipe
