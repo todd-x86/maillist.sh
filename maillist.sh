@@ -156,7 +156,7 @@ function process_message()
 	   && return 0
 
    # Compose e-mail for subscribers
-   local list_email="${list_name}@${ml_domain}"
+   local list_email="${list_email:-${list_name}@${ml_domain}}"
    local group_name="${name:-${list_name}}"
    local list_owner="${owner:-no-owner@${ml_domain}}"
    # Ignore if group name is already in subject
