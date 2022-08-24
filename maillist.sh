@@ -76,11 +76,11 @@ function is_sender_rejected()
    [[ "${accept_anon}" == true ]] && return 1
 
    # Crappy way of extracting e-mail address in "From:" header
-   local sender="$(echo "${sender}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]')"
+   local sender="$(echo "${sender}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]' | sed -e 's/\s*//g')"
 
    IFS=''
    while read line; do
-      local sub_email="$(echo "${line}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]')"
+      local sub_email="$(echo "${line}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]' | sed -e 's/\s*//g')"
       # Check user is in subscription list
       [[ "${sender}" == "${sub_email}" ]] && return 1
    done < "${sub_list}"
@@ -129,18 +129,18 @@ function process_message()
       fi
       if [[ "${hdr}" == true ]]; then
          # Parse header segments - 'skip' handles multi-line headers
-	 if [[ "${line}" =~ ^From: ]]; then
+         if [[ "${line}" =~ ^From: ]]; then
             # Track sender
-	    sender="${line:5}"
+            sender="${line:5}"
          elif [[ "${line}" =~ ^Subject: ]]; then
             # Track subject
-	    subject="${line:9}"
+            subject="${line:9}"
          fi
 
          # Track multi-line headers
-	 if [[ "${line}" =~ ^[^\ ]*: ]]; then
+         if [[ "${line}" =~ ^[^\ ]*: ]]; then
             # Allow or skip
-	    action="$(echo "${line}" | egrep -q '^(Content-Type|Importance|Date):' && echo "keep")"
+            action="$(echo "${line}" | egrep -q '^(Content-Type|Importance|Date):' && echo "keep")"
          fi
          [[ "${action}" == "keep" ]] && echo "${line}" >>"${hdr_file}"
       else
