@@ -192,7 +192,8 @@ function process_message()
       IFS=''
       while read user_email; do
          if [[ "${rewrite_from}" == true ]]; then
-            echo "From: ${list_email}" >"${response_file}"
+            # Put original sender in parentheses
+            echo "From: \"$(echo ${sender} | sed -e 's/"//g' | tr '<>' '()')\" <${list_email}>" >"${response_file}"
          else
             echo "From: ${sender}" >"${response_file}"
          fi
@@ -203,7 +204,7 @@ function process_message()
          cat "${hdr_file}" >>"${response_file}"
          cat "${msg_file}" >>"${response_file}"
 
-	 # Send mail to one user
+         # Send mail to one user
          cat "${response_file}" | ${ml_sendmail} -t
       done < "${list_sub_file}"
       
