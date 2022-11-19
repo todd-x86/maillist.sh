@@ -71,6 +71,7 @@ function is_sender_rejected()
    local accept_anon="${1}"
    local sender="${2}"
    local sub_list="${3}"
+   local external_list="${4}"
 
    # Check if allowing anons to send e-mails
    [[ "${accept_anon}" == true ]] && return 1
@@ -78,12 +79,22 @@ function is_sender_rejected()
    # Crappy way of extracting e-mail address in "From:" header
    local sender="$(echo "${sender}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]' | sed -e 's/\s*//g')"
 
+   # Check subscription list
    IFS=''
    while read line; do
       local sub_email="$(echo "${line}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]' | sed -e 's/\s*//g')"
       # Check user is in subscription list
       [[ "${sender}" == "${sub_email}" ]] && return 1
    done < "${sub_list}"
+
+   # Check an external list of approved e-mail addresses
+   if [ -f "${external_list}" ]; then
+       while read line; do
+          local allowed_email="$(echo "${line}" | sed -e 's/^.*<\(.*\)>\s*$/\1/g' | tr '[:upper:]' '[:lower:]' | sed -e 's/\s*//g')"
+          # Check user is in approved list
+          [[ "${sender}" == "${allowed_email}" ]] && return 1
+       done < "${external_list}"
+   fi
 
    # Rejected
    return 0
@@ -99,6 +110,7 @@ function process_message()
 
    local list_cfg_file="${ml_cfg_dir}/lists/${list_name}/list.cfg"
    local list_sub_file="${ml_cfg_dir}/lists/${list_name}/users.txt"
+   local list_external_file="${ml_cfg_dir}/lists/${list_name}/external.txt"
    ( [ ! -f "${list_cfg_file}" ] || [ ! -f "${list_sub_file}" ] ) \
 	   && log warn "requested mailing list \"${list_name}\" does not exist" \
 	   && send_message "The mailing list you've requested does not exist." && return 0
@@ -150,7 +162,7 @@ function process_message()
    done
 
    # If sender isn't on list, reject them
-   is_sender_rejected "${anonymous:-false}" "${sender}" "${list_sub_file}" \
+   is_sender_rejected "${anonymous:-false}" "${sender}" "${list_sub_file}" "${list_external_file}" \
 	   && log warn "sender \"${sender}\" does not have permission to send messages to \"${list_name}\"" \
 	   && send_message_to "${sender}" "You do not have permission to send messages to this mailing list.  Please contact the mail list administrator." \
 	   && return 0
@@ -240,6 +252,8 @@ case "${action}" in
      # Check working directory
      echo "[+] Setting up working directory (\"${ml_work_dir}\")"
      [ -d "${ml_work_dir}" ] || mkdir -p "${ml_work_dir}" || (echo "FATAL: cannot setup working directory" && exit 1) || exit 1
+     # TODO: copy maillist.sh and maillist.cfg to /var/local/maillist
+     # TODO: create a dummy maillist in ml_work_dir
      echo "Setup complete."
      ;;
    *)
