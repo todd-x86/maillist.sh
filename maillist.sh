@@ -126,9 +126,11 @@ function process_message()
    local timestamp="$(date +%Y%m%d.%H%M%S.%N)"
    local raw_msg_file="${ml_work_dir}/msg.${timestamp:0:-3}.txt"
    local hdr=true
+   local reject=false
    local subject=
    local sender=
    local action=
+   local reject_info=
 
    # Consume message passed by MTA
    IFS=''
@@ -147,6 +149,11 @@ function process_message()
          elif [[ "${line}" =~ ^Subject: ]]; then
             # Track subject
             subject="${line:9}"
+         elif [[ "${line}" =~ ^X-Failed-Recipients: ]]; then
+            # Failed to send to e-mail
+            # NOTE: to avoid circular issues, we need to kill processing
+            reject=true
+            reject_info="${line}"
          fi
 
          # Track multi-line headers
@@ -160,6 +167,10 @@ function process_message()
         echo "${line}" >>"${msg_file}"
       fi
    done
+
+   [[ "${reject}" == true ]] \
+       && log warn "mail server reject message -- ${reject_info}" \
+       && return 0
 
    # If sender isn't on list, reject them
    is_sender_rejected "${anonymous:-false}" "${sender}" "${list_sub_file}" "${list_external_file}" \
