@@ -145,7 +145,7 @@ function process_message()
          # Parse header segments - 'skip' handles multi-line headers
          if [[ "${line}" =~ ^From: ]]; then
             # Track sender
-            sender="${line:5}"
+	    sender="$(echo "${line:5}" | sed -e 's/^\s*//g')"
          elif [[ "${line}" =~ ^Subject: ]]; then
             # Track subject
             subject="${line:9}"
