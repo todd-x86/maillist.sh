@@ -38,7 +38,7 @@ function send_message_to()
    echo "Subject: Mail Server Error" >>"${response_file}"
    echo -e "\r\n\r\n${msg}\r\n${ml_signature}" >>"${response_file}"
 
-   cat "${response_file}" | ${ml_sendmail} -t
+   cat "${response_file}" | "${ml_sendmail}" -i -t
    local sendmail_status=$?
    rm -f "${response_file}"
 
@@ -127,6 +127,7 @@ function process_message()
    local raw_msg_file="${ml_work_dir}/msg.${timestamp:0:-3}.txt"
    local hdr=true
    local reject=false
+   local filter_auto_reply="${filter_auto_reply:-false}"
    local subject=
    local sender=
    local action=
@@ -168,6 +169,12 @@ function process_message()
       fi
    done
 
+   # Disable automatic replies (if applicable)
+   [[ "${filter_auto_reply}" == true ]] \
+       && "${subject}" =~ '^\s*Automatic [Rr]eply:\s' \
+       && log info "ignoring automatic reply from sender \"${sender}\"" \
+       && return 0
+
    [[ "${reject}" == true ]] \
        && log warn "mail server reject message -- ${reject_info}" \
        && return 0
@@ -208,7 +215,7 @@ function process_message()
       rm -f "${msg_file}"
 
       # Send mail to all users BCC'd
-      cat "${response_file}" | ${ml_sendmail} -t
+      cat "${response_file}" | "${ml_sendmail}" -i -t
       rm -f "${response_file}"
    else
       # Mail each individually
@@ -231,7 +238,7 @@ function process_message()
          cat "${msg_file}" >>"${response_file}"
 
          # Send mail to one user
-         cat "${response_file}" | ${ml_sendmail} -t -f "${from_sender}"
+         cat "${response_file}" | "${ml_sendmail}" -i -t -f "${from_sender}"
       done < "${list_sub_file}"
       
       rm -f "${msg_file}"
